@@ -16,9 +16,8 @@
 title: Joe's Chololo
 email: josephattah005@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  I blog about random things I'm learning, things I find fascinating and
-  interesting and also projects I'm working. Occassionally spicing it up with
-  rants
+  This blog is about my learning process -- the things i'm learning, how i'm
+  learning them, and the resources i'm using to learn. Lets's have fun!
 url: "https://Joe-Degs.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: attJOEah
 github_username: Joe-Degs
