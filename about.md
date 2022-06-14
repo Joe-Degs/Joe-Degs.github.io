@@ -24,8 +24,8 @@ let's continue the fun for now!
 I am mostly engaged in things relating to networked computer infrastructure, so
 I dabble in a little network programming, OS specific programming (systems
 programming) and any other thing that interests me. I do my OS specific
-programming (systems programming) on Linux. I do not have a thing you know,
-a lot of things are fascinating me day in day out and I'm just taking my time to
+programming (systems programming) on __Linux__. I do not have a thing you know,
+a lot of things fascinate me day in day out and I'm just taking my time to
 take it all in.
 
 So yeah, join me for this fun ride will yah. We are going to have soo much fun!
