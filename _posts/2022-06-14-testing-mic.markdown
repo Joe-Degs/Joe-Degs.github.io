@@ -9,9 +9,11 @@ categories: misc
 
 ## Introduction
 Welcome to the blog. This blog is about a lot of things most of which I do not
-know about yet. There's going to doing a little bit of everything, a big bit of
-bit of everything now that I think about it. 
-There will definitely be some code, a lot of code actually.
+know about yet. There's going to doing a little bit of everything,
+lowlevel/embeded programming, socket programming, some backend engineering stuff
+probably, web development hopefully and many other things I can't think of right
+now.
+
 Most of what I write about will be me trying to figure out how something that
 already exists works and maybe trying to implement the thing myself.
 
