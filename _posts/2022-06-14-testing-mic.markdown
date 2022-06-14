@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Testing Mic cho lo lo..."
+title: "Hello World!"
 categories: misc
 ---
 
@@ -8,11 +8,13 @@ categories: misc
 *satisfying picture of vim in my centos vm*
 
 ## Introduction
-Welcome to the blog. This blog is about a lot of things most of which I do not
-know about yet. There's going to doing a little bit of everything,
-lowlevel/embeded programming, socket programming, some backend engineering stuff
-probably, web development hopefully and many other things I can't think of right
-now.
+*Welcome to the blog, your presence is much appreciated. Now have your seat and
+lets get started. Time is far spent.*
+
+This blog is about a lot of things, things I'm hoping to
+learn. There's going to be a little bit of everything, lowlevel and embedded 
+programming for linux systems, network and socket programming, web development 
+hopefully and many other things I can't think of right now.
 
 Most of what I write about will be me trying to figure out how something that
 already exists works and maybe trying to implement the thing myself.
@@ -82,8 +84,8 @@ echo "Heyy peeps!"
 ```
 
 I hope the things I write actually help somebody solve some problem, ginger you 
-to look into something they've been scared of in the past or on the
-extreme end help you understand some weird concept. This blog is
-all about doing the hard scary stuff and suffering through it. Yep that's it.
+to look into something you've been scared of or in extreme end help you 
+understand some weird concept.This blog is all about doing the hard scary stuff 
+and sweating through it. Yep that's it.
 
 ~ Joe
