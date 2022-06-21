@@ -1,93 +1,95 @@
-## cross platform debugging with gdb and qemu
+---
+layout: post
+title: Cross Platform Debugging
+categories: tools, programming, debugging, c
+---
+
+# what is this about?
 Okay hear me out. I recently got myself some fresh new tools for doing the
 learning thing, as you usually do in this business.
 And this time it was risc-v build tools for cross compiling c programs in my 
 x86_64 virtual machine running debian 9.
 
 And see, I don't even want to talk about the trouble I had to go through to make this happen,
-so I will just let that slide. Since my vm is of the x86_64 architecture,
-it means I get to only run programs compiled for x86 architecture on it
-(wellll not really, but we assume as we always do in the business), and I want to
-run risc-v binaries on my x86_64 machine becuase I understand and can write it,
+so I will just let that slide. My vm is of the x86_64 architecture, meaning 
+ I get to only run programs compiled for x86 architecture on it
+(well not entirely true but I'm ready to let it slide for now), but I want to
+run risc-v binaries on my x86_64 machine because I understand and can write it,
 well this is an over statement.
+
 All things been equal I understand risc-v assembly better than the others as 
-is supposed to be. If your c programs don't work, as is the case normally, you want
-to debug it with a  debugger and what better tool to use than the hardest one
-available to mankind.
+is supposed to be. If you've ever spent a day writing code you know they rarely if ever work
+and if they do they don't work as intended.
+It is this problem that has made it a necessity for me to learn to debug  code
+with a debugger and what better tool to use than the hardest one available to mankind.
 
 The only problem I have learning to debug my c programs compiled to elf binaries
 on an x86_64 machine is that, x86 and risc-v are two *completely* different
 architectures and they kind of sort of don't see eye to eye (insert eye to eye
 meme). But I want to and nobody is stopping me so why not?
 
-### crossing the platforms
+# crossing the platforms
 As is the case, I am running an x86_64 vm, but i really want to do the nifty stuff in risc-v,
 I do not want to be seeing x86 assembly in my life, I have been traumatized enough.
 I just want to lie down, sip my gari, run and disassemble risc-v binaries.
 
-Remember when I said you get to only binaries of the same architecture as the
-machine's they are running on, yeah that was not entirely right. Becuase the
+Remember when I said you get to only run binaries of the same architecture as that of the
+machine they are running on, yeah that was not entirely right. Because the
 linux kernel has something called `binfmt_misc` which allows you to register 
-interpreters for other architectures in the kernel and if you run code of another
-architecture it looks through your `binfmt_misc` interpreter set for one to
-execute the binary with. Lots of brazy stuff going on in the kernel right?
+interpreters for other architectures in the kernel and if you run code compiled for another
+architecture it looks through your `binfmt_misc` interpreter set for the right
+one for the task at hand execute the binary with. Lots of brazy stuff going on in the kernel right?
 
 So how do you even get the interpreters for the different architectures in the
 first place. Well you do that by installing an emulator or interpreter in my
 case `qemu`(insert link)
 
-If you install `qemu` from your distro's repos, the `binfmt_misc` thing get's
-setup as added bonus. And if you don't well it is assumed you know what you are
+If you install `qemu` from your distro's repositories, the `binfmt_misc` thing get's
+setup as added bonus. But if you don't well it is assumed you know what you are
 doing so you get to configure the whole stuff yourself. The funny thing is I
-don't know what I'm doing and I compiled qemu from source 
-so lets look into how to add the `binfmt_misc` thing to the kernel.
-We need full root for this. First you have check if you have `binfmt_misc`
-enabled in your kernel.
+don't know what I'm doing but I compiled qemu from source 
+so lets look into how I added binfmt support for my kernel.
 
-First we check if we have binfmt mounted ( do the following as the root user )
-```sh
-grep binfmt /proc/mounts
+We need full root for this. To check if binfmt is mounted in the kernel, we
+execute the following command
+```
+# grep binfmt /proc/mounts
 ```
 
-If you don't have binfmt mounted you do it like this
+then we mount it if its not already mounted with this command
 ```
 # mount binfmt_misc -t /proc/sys/fs/binfmt_misc binfmt_misc rw,relatime 0 0
 ```
 
-To enable or disable `binfmt_misc` you have  to write a 1 or 0 into the binfmt
-status file like this
-```sh
-echo 1 > /proc/sys/fs/binfmt_misc/status # to enable binfmt
+Enabling and disabling binfmt_misc is as easy as
 
-echo 0 > /proc/sys/fs/binfmt_misc/status # to disable binfmt
+enable binfmt
+```
+# echo 1 > /proc/sys/fs/binfmt_misc/status 
 ```
 
-If you compile qemu from source, you have in the qemu source file directory
+disable binfmt
+```
+# echo 0 > /proc/sys/fs/binfmt_misc/status 
+```
+
+### registering the interpreter
+If you compile qemu from source, you will have in the qemu source file directory
 a directory named `scripts`, inside this directory is a file named
 `qemu-binfmt-conf.sh` you can't miss it. This file allows you to configure
-`binfmt_misc` to use the qemu interpreters you might have just installed.
-Assuming I installed installed the qemu binaries into the `/usr/local/bin`
-directory. I add binfmt support with the following command
-```sh
-./qemu-binfmt-conf.sh --qemu-path /user/local/bin --persistent yes
+`binfmt_misc` to use the qemu interpreters you have compiled and installed.
+Assuming I installed the qemu binaries into the `/usr/local/bin`
+directory. I will have to add binfmt support with the following command
 ```
-Okay now everything is done let's try it out see if it works as all the internet
-blogs are saying.
-First let's check if we are truly executing a risc-v binary
+# ./qemu-binfmt-conf.sh --qemu-path /user/local/bin --persistent yes
 ```
-joe@debian:../intro $ file exe
-exe: ELF 64-bit LSB executable, UCB RISC-V, version 1 (SYSV), statically linked, BuildID[sha1]=9f8f41e415dad7b519556c738e6336103f8acbd8, for GNU/Linux 4.15.0, with debug_info, not stripped
-```
-Okay that checks out, it is really a risc-v binary. Now let's check the cpu
-architecture of the machine we are about to run the binary on
-```
-joe@debian:../intro $ uname -m
-x86_64
-```
+the `--persistent` option is well make it persistent (it will still work if
+I restart my machine)
 
-yep it is a x86_64 machine.. sadly
-Now let's try running the following c code
-
+### executing cross compiled binaries
+Okay we have `binfmt_misc` enabled and we have registered couple of qemu interpreters
+to do the execution if we run other binaries.
+Let's move to compiling the code
 ```c
 #include <stdio.h>
 
@@ -101,18 +103,38 @@ void main(void)
 joe@debian:../intro $ make
 riscv64-linux-gnu-gcc -static -ggdb -g -O0 -c -o main.o main.c
 riscv64-linux-gnu-gcc -static -ggdb -g -O0 -o exe main.o
+```
+
+```
+joe@debian:../intro $ file exe
+exe: ELF 64-bit LSB executable, UCB RISC-V, version 1 (SYSV), statically linked, BuildID[sha1]=9f8f41e415dad7b519556c738e6336103f8acbd8, for GNU/Linux 4.15.0, with debug_info, not stripped
+```
+
+Okay that checks out, we have a simple risc-v executable binary. Let's check the cpu
+architecture of the machine we are about to run the binary on
+```
+joe@debian:../intro $ uname -m
+x86_64
+```
+
+Let's give it a go, see if it runs
+```
 joe@debian:../intro $ ./exe
 Hello, risc-v on x86!
 ```
-Ayyy.. this is what I love to see
+Ayyy! it works! this is what I love to see
 
- I hear you saying, Joe this is cool and all but we still haven't done any gdb
+I hear you saying, Joe this is cool and all but we still haven't done any gdb
 debugging yet, I thought that was all this thing was about. And I hear you, soo
 lets dig into that see what we find.
 
-I have a binary that's running, lemme whip out the debugger and start debugging.
-I have installed on my machine `gdb-multiarch` which is good for cross 
-platform debugging, I guess I am about to find out.
+### whiping out gdb-multiarch
+I have a *cross compiled* executable binary that I'm able to run on a machine
+of non-native architecture (they are of different architectures), which is crazy
+when you think about it. All that is left to do is setup a debugger so I can
+debug when the problems start popping their heads up.
+I have installed on my machine `gdb-multiarch` which is recommended for cross 
+platform debugging.
 ```
 joe@debian:../intro $ gdb-multiarch ./exe
 ... ( bunch of text I'm not interested in )
