@@ -55,7 +55,7 @@ console.log("Tadaa... I'm here!")
 
 Probably some assembly 😬. Assembly! are you sure?? 
 You don't have to worry, [RISC-V](https://en.wikipedia.org/wiki/RISC-V) is relatively easy
-```nasm
+```asm
 .globl main
 
 
