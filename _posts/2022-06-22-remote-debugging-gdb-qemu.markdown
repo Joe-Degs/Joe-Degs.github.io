@@ -3,8 +3,9 @@ layout: post
 title: "Setting Up Gdb and Qemu for Cross Platfrom Debugging"
 categories: debugging
 ---
+![blurred photo of source code](/assets/debugging.png)
 
-## what is this about?
+## what this is all about
 Okay hear me out. I recently got myself some fresh new tools for doing the
 learning thing, as you usually do in this business.
 And this time it was [risc-v](https://en.wikipedia.org/wiki/RISC-V) build tools 
@@ -15,7 +16,7 @@ And look, I don't even want to talk about the trouble I had to go through to mak
 so I will just let that slide. My vm is of the x86_64 architecture, meaning 
  I get to only run programs compiled for x86 architecture on it
 (well not entirely true but I'm ready to let this also slide for now), but I want to
-run risc-v binaries on my x86_64 machine because I understand and can write it,
+run `riscv64` binaries on my x86_64 machine because I understand and can write it,
 well this is an over statement.
 
 All things been equal I understand risc-v assembly better than the others as 
@@ -25,10 +26,10 @@ It is this problem that has made it a necessity for me to learn to debug  code
 with a debugger and what better tool to use than the hardest and most obscure one available to mankind... 
 [*gdb*](https://en.wikipedia.org/wiki/GNU_Debugger)
 
-The only problem I have learning to debug code compiled to risc-v executable binaries
-on an x86_64 machine is that, x86_64 and risc-v are two *completely* different
-architectures and they kind of sort of don't see eye to eye (insert eye to eye
-meme). But I want to compile, run and debug risc-v and nobody is stopping me so why not?
+The only problem I have learning to debug code compiled to riscv64 executable binaries
+on an x86_64 machine is that, x86_64 and riscv64 are two *completely* different
+architectures and they kind of sort of don't see eye to eye. 
+But I want to compile, run and debug riscv64 and nobody is stopping me so why not?
 
 ## crossing the platforms
 As is the case, I am running code in an x86_64 vm, but I really want to do the nifty stuff in risc-v.
@@ -98,7 +99,7 @@ Let's move on to compiling the code and executing it.
 
 void main(void)
 {
-        printf("Hello, risc-v on x86!")
+        printf("Hello, riscv64 on x86_64!")
 }
 ```
 
@@ -123,14 +124,14 @@ x86_64
 Let's give it a go, see if it runs
 ```
 joe@debian:../intro $ ./exe
-Hello, risc-v on x86!
+Hello, riscv64 on x86_64!
 ```
 Ayyy! it works! this is what I love to see
 
 Seriously Joe, this is cool and all but we still haven't done any gdb
 debugging yet, I thought that was all this post was about.
 
-### whiping out gdb(-multiarch)
+## whiping out gdb(-multiarch)
 I have a *cross compiled* executable binary that
 I can execute on a machine with an incompatible architecture, which is crazy
 when you think about it, really think about it for a second. 
@@ -166,11 +167,11 @@ do the debugging, it's a whole thing.
 
 After looking around the internet for sometime, I found the correct way to do it
 with qemu, qemu rules you know. I can setup a qemu gdb server thingy, connect
-to it with gdb-multiarch and then I can finally debug the risc-v binary, as
+to it with gdb-multiarch and then I can finally debug the executable binary, as
 i've been wanting to do for the past 4 hours :(
 
 Let's look into how it is supposed to be done. First I am supposed start
-the qemu user emulator for the architecture I want to run in this case `riscv64`
+the qemu user emulator for the architecture I want to run in this case riscv64
 on a port of my choosing
 ```
 joe@debian:../intro $ qemu-riscv64 -g 2022 exe
@@ -217,7 +218,7 @@ Breakpoint 1 at 0x10622: file main.c, line 5.
 Continuing.
 
 Breakpoint 1, main () at main.c:5
-5               printf("Hello, risc-v on x86!\n");
+5               printf("Hello, riscv64 on x86_64!\n");
 (gdb)
 ```
 Wuuhhhh! it works. 
@@ -256,7 +257,7 @@ do the debugging.
 
 Okay one last thing before I go.
 
-### automating all the things
+## automating all the things
 This is fun and all that but I am learning and I don't want to be manually doing
 these stuff all the time. I only want to write code, compile, whip out my
 debugger and start the debugging. And so I wrote a little makefile to take care
@@ -323,7 +324,7 @@ $1 = {1, 2, 3}
 ```
 Ayyyyyyyy!!!!!!!!. See?? It all works now.
 
-### final words
+## final words
 I am done setting things up, I really did not see myself spending the better part of my
 day doing this, but it was good fun you know.
 I am currently using the following resource to learn debugging, c and risc-v
