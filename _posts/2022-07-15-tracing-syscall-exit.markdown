@@ -140,22 +140,24 @@ SYSCALL_DEFINE1(exit, int, error_code)
 	do_exit((error_code&0xff)<<8);
 }
 ```
-This is the definition of the `exit` syscall. And the lower 8 bits
+This is the definition of the `exit` syscall. From the code above, the lower 8 bits
 of `error_code` are masked off and shifted 8 times to the left.
-Lemme crank out python and do some bit maths
+Lemme crank out python and do some bit maths.
 ```python
 >>> 1000 & 0xff
 232
 >>> bin(232)
 '0b11101000'
+>>> 232 << 8
+59392
 >>> bin(232 << 8)
 '0b1110100000000000'
 ```
-I'm still a little confused, why is it shifted
-8 times to the left though? cos from all this jumping around and other blogs
-confirming it on the internet, the exit 
-status code in linux is only 1 byte so we have only values from 0-255 and if you 
-try to use any value beyond that it is wrapped around.
+The conclusion, exit codes in linux are only 1 byte (0-255),
+and if we try to use a number beyond that it gets wrapped around. 
+But I'm still a little confused as to why the number passed to `do_exit` is shifted 8
+times to the left after masking off. Because following that logic with the `1000` shows
+that `59392` gets passed to `do_exit` and not `232`.
 
 ## final words
 So the fun part about this exercise is, I did some kernel tracing which
