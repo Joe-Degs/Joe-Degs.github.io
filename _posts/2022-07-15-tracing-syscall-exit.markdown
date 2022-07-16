@@ -1,7 +1,8 @@
 ---
 layout: post
 title: "Tracing the exit syscall"
-categories: tracing linux debugging
+tags: tracing syscall linux
+category: systems
 ---
 
 ---

@@ -2,6 +2,7 @@
 layout: post
 title: "Hello World!"
 categories: misc
+tags:
 ---
 
 ![vim text editor in a terminal](/assets/terminal-vim.png)

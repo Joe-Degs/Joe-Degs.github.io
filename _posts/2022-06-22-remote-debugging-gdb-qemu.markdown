@@ -1,7 +1,8 @@
 ---
 layout: post
-title: "Setting Up Gdb and Qemu for Cross Platfrom Debugging"
-categories: debugging
+title: "Setting up gdb and qemu for cross-platform debugging"
+tags: debugging cross-platform qemu risc-v
+category: systems
 ---
 ![blurred photo of source code](/assets/debugging.png)
 
@@ -266,6 +267,7 @@ the manual soul crashing work for me.
 # Makefile
 cc = riscv64-linux-gnu-gcc
 cflags = -static -ggdb -g -O0
+port = 2022
 
 exe: $(patsubst %.c, %.o, $(wildcard *.c))
         $(cc) $(cflags) -o $@ $^
@@ -276,8 +278,8 @@ exe: $(patsubst %.c, %.o, $(wildcard *.c))
 # calling `make debug` from the shell will compile you c code, start the server and
 # connect to it automatically making the debugging breezy...
 debug: exe
-        @qemu-riscv64 -g 2022 $< &
-        @gdb-multiarch $< -iex "target remote :2022"
+        @qemu-riscv64 -g $(port) $< &
+        @gdb-multiarch $< -iex "target remote :$(port)"
 
 clean:
         rm *.o exe
