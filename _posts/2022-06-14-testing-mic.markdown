@@ -74,7 +74,7 @@ main:
     li a2, msg_len
     li a7, WRITE_SYSCALL_NO
     ecall
-    li a0, 0
+    mv a0, zero
 ```
 
 We might need some shell scripts to tie things together sometimes.
