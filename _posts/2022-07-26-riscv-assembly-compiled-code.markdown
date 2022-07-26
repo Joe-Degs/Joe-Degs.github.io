@@ -71,15 +71,16 @@ file look vaguely like this:
    the object files and (surprise!) links them into one big (or small)
    executable file we can give to the CPU to run.
 
-As part of the perpetual journey of trying to figure out how things work, we are
-going to figure out how data and instructions are stored in our compiled programs. 
+As part of the journey of trying to figure out how things work, we are
+going to try to figure out how data and instructions are stored in our compiled programs. 
 We are going to be experimenting with alot of RISC-V assembly code and binary data. 
 Lets get into it!
 
 ## getting object files from our source code
 We have establised some common ground in the beginning. Now let's move to
 figuring out how we can get instructions and data from our compiled code, and 
-inspecting them to see what we can find. The program we are using for this
+inspecting them to see how the data and instrutions are stored.
+The program we are using for this
 particular task is just a simple C program that does absolutely nothing but
 contains data -- data is very important for things to make sense.
 ```c
@@ -105,11 +106,11 @@ joe@debian:../$ ls
 main.c  main.o
 ```
 We've got ourselves a nice little object file `main.o`.
-It looks beautiful doesn't it. We now have our object file (a binary file) so we can
-inspect it to see what we can find inside its nooks and cranies
+It looks beautiful doesn't it. We now have our object file (containing the compiled code)
+and we can inspect it.
 
 ### inspecting the object file
-Lets start by running `file` on the file to see what type of stuff we are
+Lets start by running `file` on the object file to see what type of stuff we are
 dealing with.
 
 ```
@@ -139,17 +140,20 @@ Lets try to make sense out of the output of the `file` command up there.
 - **UCB RISC-V**: specifies the ISA of the instructions in the file. In this
   case the precious little RISC-V. UCB (UC Berkeley) is where the ISA was developed.
 - **(SYSV)**: This specifies the OS and [ABI](https://en.wikipedia.org/wiki/Application_binary_interface) 
-  of the file.
+  of the file. The ABI specifies how the operating systems interfaces with the ISA.
 - **with debug_info, not stripped**: We compiled the code with the `-g` option to preserve
   snippets of code, names of variables and functions (called symbols) in the file.
-  These snippets and symbols are referred to as debug symbols and they are not
+  These symbols are referred to as debug symbols and they are not
   stripped from the object file. As the name suggests these symbols are valuable
   for debugging programs.
 
 Now that we are over with that, lets take a closer look at the general structure of
 an ELF file.
 
-### closer look at the elf object file
+### a closer look at the elf file
+![](../assets/elf_file_structure_png.png)
+[By Ange Albertini - CC BY 1.0](https://commons.wikimedia.org/w/index.php?curid=82319660)
+
 Lets take a look at the ELF file header (using `readelf`).
 
 ```
@@ -176,7 +180,7 @@ ELF Header:
   Section header string table index: 19
 ```
 Well well well! we have most of the same information we got from `file` here and
-soo much more, Nice. We have `section header` and `program header` information. 
+soo much more. We have `section header` and `program header` information. 
 Section and Program headers are the main parts of the ELF file format, 
 together they contain most of the things we care about -- instructions and data.
 
@@ -239,13 +243,13 @@ Now we try to find out what all the different sections mean and what they do.
 I mean there has to be a purpose to every single one of them right? But we will
 only look at the those that contain data and instructions. Lets get to looking
 at the different sections and the data each one of them contains. We will be
-looking at some hexdumps 😬. The relevant sections are: `.text`, `.data`,
-`.rodata`, `.bss` and `.symtab`.
+looking at some hexdumps 😬. We will look at the  `.text`, `.data`,
+`.rodata`, `.bss` and `.symtab` sections.
 
-#### .text section
+#### .text
 this section contains the instructions we love and cherish. It
 contains the bit patterns that tell the CPU what to do. Essentially our code
-but in binary format.
+but as bit patterns.
 
 ```
 joe@debian:../$ readelf -x .text main.o
@@ -287,7 +291,8 @@ int main(int argc, char *argv[])
   18:   8082                    ret
 ```
 That is a lot of assembly code for a function that does absolutely nothing.
-The debug symbols are making it easier to understand what the assembly code above
+The debug symbols interspersed with the assembly code above might make it
+easier to understand.
 In the C code above we have a main function with signature
 `int main(int argc, char *argv[])` that does nothing and returns zero. 
 
@@ -297,27 +302,33 @@ registers. `s0` doubles as a frame pointer and `sp` is the stack pointer.
 
 The stack grows downwards towards the low memory addresses. The way I think
 about this is, if the stack grows downwards towards the lower addresses, to
-allocate space will require a subtraction from the stack pointer and to 
-deallocate space will require an addition to the stack pointer.
+allocate space will require a reduction in the stack pointer's value and to 
+deallocate space will require an addition to the stack pointer's value.
 
 Because we compiled our code to to run on a 64 bit machine, memory addresses (pointers) are
 64 bits (8 bytes). Memory is byte addressable and adjacent memory locations are
 32/64 bits apart(I am not really sure on the exact value), either way we are able to load and
-store 64 bits at a time with the `ld` and `sd` instructions respectively.
+store 64 bits at a time with the `ld` (load double) and `sd` (store double) instructions respectively.
+A double or double word is 8 bytes in RISC-V.
 
 Now let's dissect the assembly and understand what every part of it means.
 We start with the first three instructions
 
 ```asm
-addi    sp,sp,-32
-sd      s0,24(sp)
-addi    s0,sp,32
+addi    sp, sp, -32
+sd      s0, 24(sp)
+addi    s0, sp, 32
 ```
-Over here it looks like the stack frame is been setup for the function. 32 bytes
-of space is allocated on the stack, and then the frame pointer `s0` is saved off at
-the first 8 bytes of the stack. `addi s0, sp, 32` is setting the frame pointer `s0`
+Over here it looks like the stack frame is being setup for the function. 32 is subtracted
+from the stack pointer in the first line, meaning an allocation of 32 bytes on the stack.
+On the next line, the frame pointer `s0` (the frame pointer) is stored at an offset `24`
+into the stack.
+`addi s0, sp, 32` is setting the frame pointer `s0`
 to point to the start of the allocated stack space for the function. So a stack
 frame is a range of memory from the frame pointer to the stack pointer.
+
+*Note: the stack pointer and the frame pointer are registers that contain memory addresses, in this
+case the memory address of the stack*
 
 ```asm
 mv      a5,a0
@@ -325,10 +336,11 @@ sd      a1,-32(s0)
 sw      a5,-20(s0)
 ```
 Over here, the first argument `int argc`'s value in `a0` gets copied to to the `a5` register, 
-and `a1` the second argument register holding `char *argv[]`'s value is stored off on the
+and `a1` the second argument register holding `char *argv[]`'s value is stored on the
 stack (note that it is a pointer). The integer value in the `a5` also gets
-stored on the stack. This snippet of assembly code stores the arguments of the
-function on the stack.
+stored on the stack, this time using the `sw` (store word) instruction. This is
+because `int`s in C are 4 bytes and a word in RISC-V is 4 bytes.
+The snippet above stores both function arguments on the stack.
 
 ```asm
 li      a5,0
@@ -339,13 +351,13 @@ addi    sp,sp,32
 ret
 ```
 In the first line of the above snippet, the immediate value `0` is copied into the `a5` register and then
-the value is copied to the `a0` register. The frame pointer stored that was
-stored on the stack initially is copied back into the `s0` register. 
+the value is copied to the `a0` register. The frame pointer stored initially on the stack is been copied
+back into the `s0` register.
 `addi sp, sp, 32` deallocates the stack, essentially moving it back to its state before
 the `main` function. Note that the 0 moved into a0 is the return value of the function.
 
-#### .data section
-contains the all the global and static variable of the compiled code.
+#### .data
+contains all the global and static variable of our compiled code.
 
 ```
 joe@debian:../$ readelf -x .data main.o
@@ -359,28 +371,24 @@ Lets take a look the snippet of our code that might correspond to this section
 
 ```c
 /* ... */
+
 int number = 0x1234;
+
+/* ... */
 ```
 
-Okay, we have the `1234` with alot of zeroes after it in the hex dump up above but it looks like its been reversed.
+Okay, we have the `3412` with alot of zeroes after it in the hex dump up above, but we stored
+`1234`.
 Remember the LSB and MSB? We see its effect over here, we see that the `34`
 comes before `12` in the hexdump because it is storing the data in the
-little-endian (stores the little end first) format. But how do we know which one is the
-little end and which is the big end. The byte with the lowest place value
-is the little end (least significant byte) and the byte with the highest place value is the big end (most
-significant byte)
+little-endian (stores the little end first) format. 
+How do we know which one is the little end and which one is the big end.
+The byte with the lowest place value is the little end (least significant byte) 
+and the byte with the highest place value is the big end (most significant byte)
 
 #### .bss
-this one is just like the *.data* section but only keeps those
-variables that do not have an initial value.
-
-```
-joe@debian:../$ readelf -x .bss main.o
-Section '.bss' has no data to dump.
-```
-
-Ehmm what is going on here? We declared a global variable and did not
-initialize it.
+this one is just like the *.data* section but only contains those
+variables that do not have an initial value or have an initial value of zero.
 
 ```c
 /* ... */
@@ -390,10 +398,19 @@ int num;
 /* ... */
 ```
 
-Because the variables in the *.bss* section contain no data, the compiler leaves
+```
+joe@debian:../$ readelf -x .bss main.o
+Section '.bss' has no data to dump.
+```
+
+Ehmm what is going on here? We declared a global variable and did not
+initialize it.
+
+Because the variables in the *.bss* section do not have initial values, the compiler leaves
 the section empty in the file to save some space. It is the responsibility of
-the executable loader to fill in the zeroes when the file is loaded into memory
-for execution. Let's look at the dissambly of the section with `objdump` to test this logic.
+the executable loader (in the operating system) fill in this section with zeroes when
+loading the file into memory for execution.
+Let's look at the disassembly of this section.
 
 ```
 joe@debian:../$ riscv64-linux-gnu-objdump -z -S -D -j .bss main.o
@@ -412,7 +429,7 @@ int num;
 Yeah well, we see the `num` variable name with a bunch of zeroes in that
 sections. Everything looks good.
 
-#### .rodata
+#### .rodata (read only data)
 this section contains constant data. If you have an integer
 constant or string constant, they get stored in this section. If you pass
 a literal string to a function, it gets stored here.
@@ -468,11 +485,17 @@ Wow cool stuff indeed. We can see the variable names, the `main` function
 and even the filename in the symbol table. That's wild!
 
 ### final words
-This post spiralled out of control quickly and took a life of its own, it was
-fun and I learnt a ton writing this one. I might continue and write more stuff
+This post spiraled out of control quickly and took a life of its own, it was
+fun and I learnt a ton writing this it. I might continue and write more stuff
 on this topic of how data and code get stored in binary files. I would like to continue to
 figure out how especially arrays, structs and pointers are stored.. Ohh and how data
-is aligned in memory and padding and all the other stuff.
+is aligned in memory and padding and all the other fancy stuff.
 And maybe look at control flow and program logic at some other time.
 
+Until then happy learning Campers!
+
 #### resources
+- [MIT 6.004 Computation Structures (RISC-V programming)](https://www.youtube.com/playlist?list=PLDSlqjcPpoL64CJdF0Qee5oWqGS6we_Yu)
+- [The 101 of ELF files on Linux](https://linux-audit.com/elf-binaries-on-linux-understanding-and-analysis/)
+- [ELF Man Page - Linux](https://man7.org/linux/man-pages/man5/elf.5.html)
+- [RISC-V calling convention](https://riscv.org/wp-content/uploads/2015/01/riscv-calling.pdf)
