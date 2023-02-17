@@ -24,6 +24,6 @@ jobs:
           git config user.name Joe-Degs
           git config user.email jpedegs8990@gmail.com
           git branch resume && git switch resume
-          find . -type f -name *.pdf -exec git add {}\;
+          find . -type f -name *.pdf -exec git add {} \;
           git commit -m "add build artifact"
           git push -u origin resume
