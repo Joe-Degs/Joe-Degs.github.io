@@ -23,17 +23,22 @@ jobs:
       - name: Upload PDF as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: resume.pdf
-          path: "*.pdf"
+        # uploads a zip file
+          name: resume
+          path: "resume/*.pdf"
+          if-no-filess-found: error
 
-  deploy:
+  push_to_repo:
     runs-on: ubuntu-latest
     needs: [build_and_upload]
     steps:
       - name: Download PDF from artifact store 
         uses: actions/download-artifact@v3
         with:
-          name: resume.pdf 
+          name: resume
+      - run: |
+          unzip resume
+          rm resume
       - name: push artifact back to repo
         uses: hisasann/simple-github-auto-push@main
         env:
