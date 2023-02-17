@@ -37,6 +37,7 @@ jobs:
         with:
           name: resume
       - run: |
+          cd $GITHUB_WORKSPACE
           unzip resume
           rm resume
       - name: push artifact back to repo
