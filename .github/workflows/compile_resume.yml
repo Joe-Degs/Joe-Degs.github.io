@@ -19,8 +19,11 @@ jobs:
           working_directory: resume
           root_file: "*.tex"
           glob_root_file: true
-      - name: echo git command
+      - name: push build artifact
         run: |
-          which git
-          pwd
-          find . -type f -name *.pdf
+          git config user.name Joe-Degs
+          git config user.email jpedegs8990@gmail.com
+          git branch resume && git switch resume
+          find . -type f -name *.pdf -exec git add {}\;
+          git commit -m "add build artifact"
+          git push -u origin resume
